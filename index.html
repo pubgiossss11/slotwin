@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Slot Probability Calculator</title>
+  <style>
+    body { background:#000; color:#0f0; font-family: monospace; text-align:center; }
+    input, button { margin:5px; padding:5px; }
+    canvas { background:#111; margin-top:20px; }
+  </style>
+</head>
+<body>
+  <h1>🎰 Slot Probability Calculator</h1>
+
+  <label>Số cuộn (reels): </label>
+  <input id="reels" type="number" value="3"><br>
+  <label>Số biểu tượng (symbols): </label>
+  <input id="symbols" type="number" value="6"><br>
+  <label>Số giống nhau để thắng: </label>
+  <input id="winCount" type="number" value="3"><br>
+
+  <button onclick="calcProb()">Tính xác suất</button>
+  <button onclick="simulate()">Mô phỏng 10000 lần</button>
+
+  <h2 id="result"></h2>
+  <canvas id="chart" width="400" height="300"></canvas>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    function calcProb(){
+      const reels = +document.getElementById("reels").value;
+      const symbols = +document.getElementById("symbols").value;
+      const winCount = +document.getElementById("winCount").value;
+
+      // Xác suất tất cả reels đều cùng symbol
+      let jackpotProb = 1 / Math.pow(symbols, reels-1);
+
+      document.getElementById("result").innerText = 
+        `Xác suất jackpot (${winCount} giống nhau) ≈ ${(jackpotProb*100).toFixed(2)}%`;
+    }
+
+    async function simulate(){
+      const reels = +document.getElementById("reels").value;
+      const symbols = +document.getElementById("symbols").value;
+      const winCount = +document.getElementById("winCount").value;
+
+      let win=0, near=0, lose=0;
+
+      for(let t=0;t<10000;t++){
+        let arr=[];
+        for(let r=0;r<reels;r++) arr.push(Math.floor(Math.random()*symbols));
+
+        let counts={};
+        arr.forEach(x=>counts[x]=(counts[x]||0)+1);
+        let maxCount=Math.max(...Object.values(counts));
+
+        if(maxCount>=winCount) win++;
+        else if(maxCount===winCount-1) near++;
+        else lose++;
+      }
+
+      const ctx=document.getElementById("chart").getContext("2d");
+      new Chart(ctx,{
+        type:"bar",
+        data:{
+          labels:["Win","Near","Lose"],
+          datasets:[{data:[win,near,lose]}]
+        }
+      });
+    }
+  </script>
+</body>
+</html>
